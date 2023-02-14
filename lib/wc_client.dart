@@ -217,11 +217,7 @@ class WCClient {
     _chainId = chainId;
     final bridgeUri =
         Uri.parse(session.bridge.replaceAll('https://', 'wss://'));
-    final ws = await WebSocket.connect(
-      bridgeUri.toString(),
-      customClient: customClient,
-    );
-    _webSocket = new IOWebSocketChannel(ws);
+    _webSocket = WebSocketChannel.connect(bridgeUri);
     _isConnected = true;
     if (fromSessionStore) {
       onConnect?.call();
