@@ -7,10 +7,11 @@ part of 'wc_wallet_switch_network.dart';
 // **************************************************************************
 
 WCWalletSwitchNetwork _$WCWalletSwitchNetworkFromJson(
-        Map<String, dynamic> json) =>
-    WCWalletSwitchNetwork(
-      json['chainId'] as String,
-    );
+    Map<String, dynamic> json) {
+  return WCWalletSwitchNetwork(
+    json['chainId'] as String,
+  );
+}
 
 Map<String, dynamic> _$WCWalletSwitchNetworkToJson(
         WCWalletSwitchNetwork instance) =>

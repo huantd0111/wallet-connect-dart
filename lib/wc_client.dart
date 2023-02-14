@@ -390,7 +390,8 @@ class WCClient {
       case WCMethod.WALLET_SWITCH_NETWORK:
         // print('WALLET_SWITCH_NETWORK $request');
         final params = WCWalletSwitchNetwork.fromJson(request.params!.first);
-        onWalletSwitchNetwork?.call(request.id, int.parse(params.chainId));
+        _chainId = int.parse(params.chainId);
+        onWalletSwitchNetwork?.call(request.id, _chainId!);
         break;
       default:
     }
