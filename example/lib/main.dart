@@ -246,13 +246,13 @@ class _MyHomePageState extends State<MyHomePage> {
     });
   }
 
-  _onSwitchNetwork(int id, int chainId) {
+  _onSwitchNetwork(dynamic id, int chainId) {
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(
       content: Text('Changed network to $chainId.'),
     ));
   }
 
-  _onSessionRequest(int id, WCPeerMeta peerMeta) {
+  _onSessionRequest(dynamic id, WCPeerMeta peerMeta) {
     showDialog(
       context: context,
       builder: (_) {
@@ -402,7 +402,7 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   _onSignTransaction(
-    int id,
+    dynamic id,
     WCEthereumTransaction ethereumTransaction,
   ) {
     _onTransaction(
@@ -432,7 +432,7 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   _onSendTransaction(
-    int id,
+    dynamic id,
     WCEthereumTransaction ethereumTransaction,
   ) {
     _onTransaction(
@@ -461,7 +461,7 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   _onTransaction({
-    required int id,
+    required dynamic id,
     required WCEthereumTransaction ethereumTransaction,
     required String title,
     required VoidCallback onConfirm,
@@ -675,7 +675,7 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   _onSign(
-    int id,
+    dynamic id,
     WCEthereumSignMessage ethereumSignMessage,
   ) {
     final decoded = (ethereumSignMessage.type == WCSignType.TYPED_MESSAGE)

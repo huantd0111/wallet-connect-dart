@@ -6,7 +6,7 @@ part 'json_rpc_request.g.dart';
 
 @JsonSerializable()
 class JsonRpcRequest {
-  final int id;
+  final dynamic id;
   final String jsonrpc;
   final WCMethod? method;
   final List<dynamic>? params;

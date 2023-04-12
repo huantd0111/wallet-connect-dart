@@ -21,17 +21,15 @@ import 'package:wallet_connect/models/wc_peer_meta.dart';
 import 'package:wallet_connect/models/wc_socket_message.dart';
 import 'package:wallet_connect/wc_cipher.dart';
 import 'package:wallet_connect/wc_session_store.dart';
-import 'package:web_socket_channel/io.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
 
-typedef SessionRequest = void Function(int id, WCPeerMeta peerMeta);
+typedef SessionRequest = void Function(dynamic id, WCPeerMeta peerMeta);
 typedef SocketError = void Function(dynamic message);
 typedef SocketClose = void Function(int? code, String? reason);
-typedef EthSign = void Function(int id, WCEthereumSignMessage message);
-typedef EthTransaction = void Function(
-    int id, WCEthereumTransaction transaction);
-typedef CustomRequest = void Function(int id, String payload);
-typedef WalletSwitchNetwork = void Function(int id, int chainId);
+typedef EthSign = void Function(dynamic id, WCEthereumSignMessage message);
+typedef EthTransaction = void Function(dynamic id, WCEthereumTransaction transaction);
+typedef CustomRequest = void Function(dynamic id, String payload);
+typedef WalletSwitchNetwork = void Function(dynamic id, int chainId);
 
 class WCClient {
   late WebSocketChannel _webSocket;
@@ -173,7 +171,7 @@ class WCClient {
   }
 
   approveRequest<T>({
-    required int id,
+    required dynamic id,
     required T result,
   }) {
     final response = JsonRpcResponse<T>(
@@ -184,7 +182,7 @@ class WCClient {
   }
 
   rejectRequest({
-    required int id,
+    required dynamic id,
     String message = "Reject by the user",
   }) {
     final response = JsonRpcErrorResponse(
@@ -215,8 +213,7 @@ class WCClient {
     _peerId = peerId;
     _remotePeerId = remotePeerId;
     _chainId = chainId;
-    final bridgeUri =
-        Uri.parse(session.bridge.replaceAll('https://', 'wss://'));
+    final bridgeUri = Uri.parse(session.bridge.replaceAll('https://', 'wss://'));
     _webSocket = WebSocketChannel.connect(bridgeUri);
     _isConnected = true;
     if (fromSessionStore) {
@@ -242,7 +239,7 @@ class WCClient {
     _socketSink!.add(jsonEncode(message));
   }
 
-  _invalidParams(int id) {
+  _invalidParams(dynamic id) {
     final response = JsonRpcErrorResponse(
       id: id,
       error: JsonRpcError.invalidParams("Invalid parameters"),
@@ -266,7 +263,6 @@ class WCClient {
     _socketStream.listen(
       (event) async {
         // print('DATA: $event ${event.runtimeType}');
-        final Map<String, dynamic> decoded = json.decode("$event");
         // print('DECODED: $decoded ${decoded.runtimeType}');
         final socketMessage = WCSocketMessage.fromJson(jsonDecode("$event"));
         final decryptedMessage = await _decrypt(socketMessage);
@@ -288,8 +284,7 @@ class WCClient {
   }
 
   Future<String> _decrypt(WCSocketMessage socketMessage) async {
-    final payload =
-        WCEncryptionPayload.fromJson(jsonDecode(socketMessage.payload));
+    final payload = WCEncryptionPayload.fromJson(jsonDecode(socketMessage.payload));
     final decrypted = await WCCipher.decrypt(payload, _session!.key);
     // print("DECRYPTED: $decrypted");
     return decrypted;
