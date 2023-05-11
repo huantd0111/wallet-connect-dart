@@ -15,8 +15,7 @@ JsonRpcRequest _$JsonRpcRequestFromJson(Map<String, dynamic> json) {
   );
 }
 
-Map<String, dynamic> _$JsonRpcRequestToJson(JsonRpcRequest instance) =>
-    <String, dynamic>{
+Map<String, dynamic> _$JsonRpcRequestToJson(JsonRpcRequest instance) => <String, dynamic>{
       'id': instance.id,
       'jsonrpc': instance.jsonrpc,
       'method': _$WCMethodEnumMap[instance.method],

@@ -12,7 +12,7 @@ JsonRpcResponse<T> _$JsonRpcResponseFromJson<T>(
 ) {
   return JsonRpcResponse<T>(
     id: json['id'],
-    jsonrpc: json['jsonrpc'] as String,
+    jsonrpc: json['jsonrpc'] as String ?? JSONRPC_VERSION,
     result: fromJsonT(json['result']),
   );
 }
