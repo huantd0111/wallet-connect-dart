@@ -21,13 +21,15 @@ import 'package:wallet_connect/models/wc_peer_meta.dart';
 import 'package:wallet_connect/models/wc_socket_message.dart';
 import 'package:wallet_connect/wc_cipher.dart';
 import 'package:wallet_connect/wc_session_store.dart';
+import 'package:web_socket_channel/io.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
 
 typedef SessionRequest = void Function(dynamic id, WCPeerMeta peerMeta);
 typedef SocketError = void Function(dynamic message);
 typedef SocketClose = void Function(int? code, String? reason);
 typedef EthSign = void Function(dynamic id, WCEthereumSignMessage message);
-typedef EthTransaction = void Function(dynamic id, WCEthereumTransaction transaction);
+typedef EthTransaction = void Function(
+  dynamic id, WCEthereumTransaction transaction);
 typedef CustomRequest = void Function(dynamic id, String payload);
 typedef WalletSwitchNetwork = void Function(dynamic id, int chainId);
 
@@ -42,7 +44,7 @@ class WCClient {
   WCSession? _session;
   WCPeerMeta? _peerMeta;
   WCPeerMeta? _remotePeerMeta;
-  int _handshakeId = -1;
+  dynamic _handshakeId = -1;
   int? _chainId;
   String? _peerId;
   String? _remotePeerId;
@@ -97,8 +99,8 @@ class WCClient {
 
   Future<void> connectFromSessionStore(
     WCSessionStore sessionStore, {
-    HttpClient? customHttpClient,
-  }) async {
+      HttpClient? customHttpClient,
+    }) async {
     await _connect(
       fromSessionStore: true,
       session: sessionStore.session,
@@ -112,13 +114,13 @@ class WCClient {
   }
 
   WCSessionStore get sessionStore => WCSessionStore(
-        session: _session!,
-        peerMeta: _peerMeta!,
-        peerId: _peerId!,
-        remotePeerId: _remotePeerId!,
-        remotePeerMeta: _remotePeerMeta!,
-        chainId: _chainId!,
-      );
+    session: _session!,
+    peerMeta: _peerMeta!,
+    peerId: _peerId!,
+    remotePeerId: _remotePeerId!,
+    remotePeerMeta: _remotePeerMeta!,
+    chainId: _chainId!,
+  );
 
   approveSession({required List<String> accounts, int? chainId}) {
     if (_handshakeId <= 0) {
@@ -215,8 +217,13 @@ class WCClient {
     _peerId = peerId;
     _remotePeerId = remotePeerId;
     _chainId = chainId;
-    final bridgeUri = Uri.parse(session.bridge.replaceAll('https://', 'wss://'));
-    _webSocket = WebSocketChannel.connect(bridgeUri);
+    final bridgeUri =
+    Uri.parse(session.bridge.replaceAll('https://', 'wss://'));
+    final ws = await WebSocket.connect(
+      bridgeUri.toString(),
+      customClient: customClient,
+    );
+    _webSocket = new IOWebSocketChannel(ws);
     _isConnected = true;
     if (fromSessionStore) {
       onConnect?.call();
@@ -263,8 +270,9 @@ class WCClient {
 
   _listen() {
     _socketStream.listen(
-      (event) async {
+        (event) async {
         // print('DATA: $event ${event.runtimeType}');
+        final Map<String, dynamic> decoded = json.decode("$event");
         // print('DECODED: $decoded ${decoded.runtimeType}');
         final socketMessage = WCSocketMessage.fromJson(jsonDecode("$event"));
         final decryptedMessage = await _decrypt(socketMessage);
@@ -286,7 +294,8 @@ class WCClient {
   }
 
   Future<String> _decrypt(WCSocketMessage socketMessage) async {
-    final payload = WCEncryptionPayload.fromJson(jsonDecode(socketMessage.payload));
+    final payload =
+    WCEncryptionPayload.fromJson(jsonDecode(socketMessage.payload));
     final decrypted = await WCCipher.decrypt(payload, _session!.key);
     // print("DECRYPTED: $decrypted");
     return decrypted;
@@ -327,7 +336,7 @@ class WCClient {
         }
         break;
       case WCMethod.ETH_SIGN:
-        // print('ETH_SIGN $request');
+      // print('ETH_SIGN $request');
         final params = request.params!.cast<String>();
         if (params.length < 2) {
           throw InvalidJsonRpcParamsException(request.id);
@@ -342,7 +351,7 @@ class WCClient {
         );
         break;
       case WCMethod.ETH_PERSONAL_SIGN:
-        // print('ETH_PERSONAL_SIGN $request');
+      // print('ETH_PERSONAL_SIGN $request');
         final params = request.params!.cast<String>();
         if (params.length < 2) {
           throw InvalidJsonRpcParamsException(request.id);
@@ -357,7 +366,7 @@ class WCClient {
         );
         break;
       case WCMethod.ETH_SIGN_TYPE_DATA:
-        // print('ETH_SIGN_TYPE_DATA $request');
+      // print('ETH_SIGN_TYPE_DATA $request');
         final params = request.params!.cast<String>();
         if (params.length < 2) {
           throw InvalidJsonRpcParamsException(request.id);
@@ -372,7 +381,7 @@ class WCClient {
         );
         break;
       case WCMethod.ETH_SIGN_TYPE_DATA_V4:
-        // print('ETH_SIGN_TYPE_DATA $request');
+      // print('ETH_SIGN_TYPE_DATA $request');
         final params = request.params!.cast<String>();
         if (params.length < 2) {
           throw InvalidJsonRpcParamsException(request.id);
@@ -387,20 +396,19 @@ class WCClient {
         );
         break;
       case WCMethod.ETH_SIGN_TRANSACTION:
-        // print('ETH_SIGN_TRANSACTION $request');
+      // print('ETH_SIGN_TRANSACTION $request');
         final param = WCEthereumTransaction.fromJson(request.params!.first);
         onEthSignTransaction?.call(request.id, param);
         break;
       case WCMethod.ETH_SEND_TRANSACTION:
-        // print('ETH_SEND_TRANSACTION $request');
+      // print('ETH_SEND_TRANSACTION $request');
         final param = WCEthereumTransaction.fromJson(request.params!.first);
         onEthSendTransaction?.call(request.id, param);
         break;
       case WCMethod.WALLET_SWITCH_NETWORK:
-        // print('WALLET_SWITCH_NETWORK $request');
+      // print('WALLET_SWITCH_NETWORK $request');
         final params = WCWalletSwitchNetwork.fromJson(request.params!.first);
-        _chainId = int.parse(params.chainId);
-        onWalletSwitchNetwork?.call(request.id, _chainId!);
+        onWalletSwitchNetwork?.call(request.id, int.parse(params.chainId));
         break;
       default:
     }
