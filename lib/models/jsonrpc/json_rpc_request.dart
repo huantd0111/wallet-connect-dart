@@ -9,7 +9,7 @@ class JsonRpcRequest {
   final dynamic id;
   final String jsonrpc;
   final WCMethod? method;
-  final List<dynamic>? params;
+  final dynamic params;
   JsonRpcRequest({
     required this.id,
     this.jsonrpc = JSONRPC_VERSION,
