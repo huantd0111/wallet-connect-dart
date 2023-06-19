@@ -31,7 +31,7 @@ typedef EthSign = void Function(dynamic id, WCEthereumSignMessage message);
 typedef EthTransaction = void Function(dynamic id, WCEthereumTransaction transaction);
 typedef CustomRequest = void Function(dynamic id, String payload);
 typedef WalletSwitchNetwork = void Function(dynamic id, int chainId);
-typedef SessionUpdate = void Function(int id, bool approved, int? chainId, List<String>? accounts);
+typedef SessionUpdate = void Function(dynamic id, bool approved, int? chainId, List<String>? accounts);
 
 const DappDisconnectCode = -9898;
 
@@ -236,8 +236,8 @@ class WCClient {
     _subscribe(peerId);
   }
 
-  disconnect() {
-    _socketSink!.close(WebSocketStatus.normalClosure);
+  disconnect({String? reason}) {
+    _socketSink!.close(WebSocketStatus.normalClosure, reason);
   }
 
   _subscribe(String topic) {
@@ -329,10 +329,10 @@ class WCClient {
         break;
       case WCMethod.SESSION_UPDATE:
         final param = WCSessionUpdate.fromJson(request.params!.first);
-        // print('SESSION_UPDATE $param');
+        print('SESSION_UPDATE $param');
         if (!param.approved) {
           onDisconnect?.call(DappDisconnectCode, null);
-          killSession();
+          killSession(reason: "Session Update Closed");
         }
         onSessionUpdate?.call(request.id, param.approved, param.chainId, param.accounts);
         break;
@@ -415,9 +415,9 @@ class WCClient {
     }
   }
 
-  killSession() async {
+  killSession({String? reason}) async {
     await updateSession(approved: false);
-    disconnect();
+    disconnect(reason: reason);
   }
 
   _resetState() {
